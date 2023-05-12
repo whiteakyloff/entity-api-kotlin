@@ -59,16 +59,18 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
     init {
         this.location = location
         this.entityType = entityType
+
+        if (LISTENER == null) {
+            LISTENER = FakeEntityListener(JavaPlugin.getProvidingPlugin(this::class.java))
+        }
         if (ENTITY_ID.get(null) !is AtomicInteger) {
             ENTITY_ID.set(null, entityId + 1)
         }
         ENTITIES.add(this)
 
-        receivers = ArrayList()
-        dataWatcher = WrappedDataWatcher()
-        entityEquipment = FakeEntityEquipment(this)
-
-        FakeEntityListener(JavaPlugin.getProvidingPlugin(this::class.java))
+        this.receivers = ArrayList()
+        this.dataWatcher = WrappedDataWatcher()
+        this.entityEquipment = FakeEntityEquipment(this)
     }
 
     fun look(location: Location) {
@@ -79,7 +81,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         this.receivers.forEach { this.look(it, yaw, pitch) }
     }
 
-    fun look(player: Player?, yaw: Float, pitch: Float) {
+    open fun look(player: Player?, yaw: Float, pitch: Float) {
         this.location.apply {
             this.yaw = yaw
             this.pitch = pitch
@@ -88,7 +90,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         ProtocolPacketFactory.createEntityHeadRotationPacket(this.entityId, this.location).sendPacket(player)
     }
 
-    fun look(player: Player?, location: Location?) {
+    open fun look(player: Player?, location: Location?) {
         this.location.apply {
             this.yaw = location!!.yaw
             this.pitch = location.pitch
@@ -110,7 +112,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         this.receivers.forEach { this.setVelocity(it, vector) }
     }
 
-    fun setVelocity(player: Player?, vector: Vector?) {
+    open fun setVelocity(player: Player?, vector: Vector?) {
         ProtocolPacketFactory.createEntityVelocityPacket(entityId, vector!!).sendPacket(player)
     }
 
@@ -221,7 +223,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         this.sendDestroyPacket(player)
     }
 
-    fun setPassengers(entityIds: IntArray) {
+    open fun setPassengers(entityIds: IntArray) {
         this.receivers.forEach { this.setPassengers(it, entityIds) }
     }
 
@@ -229,7 +231,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         this.setPassengers(fakeEntities.map { it!!.entityId }.toIntArray())
     }
 
-    fun setPassengers(player: Player?, entityIds: IntArray) {
+    open fun setPassengers(player: Player?, entityIds: IntArray) {
         ProtocolPacketFactory.createMountPacket(this.entityId, entityIds).sendPacket(player)
     }
 
@@ -258,9 +260,8 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
     }
 
     private fun generateBitMask(): Byte {
-        var bitMask: Byte = 0x00
+        var bitMask: Byte = if (burning) 0x01 else 0x00
 
-        bitMask = bitMask.plus(if (burning) 0x01 else 0x00).toByte()
         bitMask = bitMask.plus(if (sneaking) 0x02 else 0x00).toByte()
         bitMask = bitMask.plus(if (sprinting) 0x08 else 0x00).toByte()
         bitMask = bitMask.plus(if (invisible) 0x20 else 0x00).toByte()
@@ -276,10 +277,10 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         )
 
         fun getEntityById(id: Int): FakeEntity? {
-            return ENTITIES.stream()
-                .filter { it.entityId == id }
-                .findFirst().orElse(null)
+            return ENTITIES.firstOrNull { it.entityId == id }
         }
+
+        var LISTENER: FakeEntityListener? = null
         val BYTE_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(java.lang.Byte::class.java)
         val STRING_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(java.lang.String::class.java)
         val INT_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(java.lang.Integer::class.java)

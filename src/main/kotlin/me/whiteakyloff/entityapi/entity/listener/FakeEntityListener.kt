@@ -1,10 +1,11 @@
 package me.whiteakyloff.entityapi.entity.listener
 
+import me.whiteakyloff.entityapi.entity.FakeEntity
+
 import com.comphenix.protocol.PacketType
 import com.comphenix.protocol.ProtocolLibrary
 import com.comphenix.protocol.events.PacketAdapter
 import com.comphenix.protocol.events.PacketEvent
-import me.whiteakyloff.entityapi.entity.FakeEntity
 
 import org.bukkit.plugin.java.JavaPlugin
 
