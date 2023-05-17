@@ -1,6 +1,5 @@
 plugins {
     id("org.jetbrains.kotlin.jvm") version "1.8.21"
-    id("xyz.jpenilla.run-paper") version "2.1.0"
 }
 
 version = "2.0"
@@ -26,14 +25,5 @@ tasks.test {
 java {
     toolchain {
         this.languageVersion.set(JavaLanguageVersion.of(8))
-    }
-}
-
-tasks {
-    jar {
-        enabled = false
-    }
-    runServer {
-        minecraftVersion("1.12.2")
     }
 }
