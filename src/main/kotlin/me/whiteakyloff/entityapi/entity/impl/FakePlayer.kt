@@ -24,7 +24,7 @@ import com.google.common.collect.ImmutableList
 import java.util.*
 import kotlin.random.Random
 
-class FakePlayer : FakeLivingEntity
+open class FakePlayer : FakeLivingEntity
 {
     private val uuid: UUID
     private val name: String
@@ -38,24 +38,20 @@ class FakePlayer : FakeLivingEntity
         this.mojangSkin = skin
 
         this.uuid = UUID.randomUUID()
-        this.name = String.format("§8NPC [%s]", Random.nextInt(0, 9999999))
+        this.name = String.format("§8NPC [%s]", Random.nextInt(0, Int.MAX_VALUE))
 
         this.updateSkinPart(PlayerSkinPart.TOTAL.bitMask)
     }
 
-    fun setSkin(skinName: String?) {
-        this.setSkin(MojangUtil.getSkinTextures(skinName!!))
-    }
+    open fun setSkin(skinName: String?) = this.setSkin(MojangUtil.getSkinTextures(skinName!!))
 
-    private fun setSkin(mojangSkin: MojangUtil.Skin?) {
-        this.receivers.forEach { this.setSkin(it, mojangSkin) }
-    }
+    open fun setSkin(mojangSkin: MojangUtil.Skin?) = this.receivers.forEach { this.setSkin(it, mojangSkin) }
 
-    private fun setSkin(player: Player?, mojangSkin: MojangUtil.Skin?) {
+    open fun setSkin(player: Player?, mojangSkin: MojangUtil.Skin?) {
         this.mojangSkin = mojangSkin
 
         this.sendPlayerInfoPacket(EnumWrappers.PlayerInfoAction.ADD_PLAYER, player!!)
-        Bukkit.getScheduler().runTaskLater(this.javaPlugin, {
+        Bukkit.getScheduler().runTaskLater(this.javaPlugin, Runnable {
             this.sendPlayerInfoPacket(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER, player)
         }, 30L)
     }
@@ -98,7 +94,7 @@ class FakePlayer : FakeLivingEntity
 
         this.sendTeamPacket(this.getTeamName(), player, WrapperPlayServerScoreboardTeam.Mode.PLAYERS_ADDED)
 
-        Bukkit.getScheduler().runTaskLater(this.javaPlugin, {
+        Bukkit.getScheduler().runTaskLater(this.javaPlugin, Runnable {
             this.sendDataWatcherPacket()
             this.sendPlayerInfoPacket(EnumWrappers.PlayerInfoAction.REMOVE_PLAYER, player)
         }, 100L)

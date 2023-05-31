@@ -14,21 +14,16 @@ class FakeEntityEquipment(private val fakeEntity: FakeEntity)
 {
     private val equipmentMap = EnumMap<EnumWrappers.ItemSlot, ItemStack>(EnumWrappers.ItemSlot::class.java)
 
-    fun getEquipment(itemSlot: EnumWrappers.ItemSlot): ItemStack? {
-        return this.equipmentMap[itemSlot]
-    }
-
     fun setEquipment(itemSlot: EnumWrappers.ItemSlot, itemStack: ItemStack) {
         this.equipmentMap[itemSlot] = itemStack
-        this.fakeEntity.receivers.forEach { receiver ->
-            sendEquipmentPacket(itemSlot, itemStack, receiver)
-        }
+
+        this.fakeEntity.receivers.forEach { this.sendEquipmentPacket(itemSlot, itemStack, it) }
     }
 
-    fun updateEquipmentPacket(player: Player) {
-        this.equipmentMap.forEach { (itemSlot, itemStack) ->
-            sendEquipmentPacket(itemSlot, itemStack, player)
-        }
+    fun getEquipment(itemSlot: EnumWrappers.ItemSlot): ItemStack? = this.equipmentMap[itemSlot]
+
+    fun updateEquipmentPacket(player: Player) = this.equipmentMap.forEach {
+        (itemSlot, itemStack) -> this.sendEquipmentPacket(itemSlot, itemStack, player)
     }
 
     private fun sendEquipmentPacket(itemSlot: EnumWrappers.ItemSlot, itemStack: ItemStack, player: Player) {

@@ -1,4 +1,4 @@
-package me.whiteakyloff.entityapi.entity.impl.arrow
+package me.whiteakyloff.entityapi.entity.impl
 
 import me.whiteakyloff.entityapi.entity.FakeEntity
 
@@ -9,18 +9,16 @@ open class FakeArrow(entityType: EntityType, location: Location) : FakeEntity(en
 {
     constructor(location: Location) : this(EntityType.ARROW, location)
 
-    var critical = false
+    open var critical = false
         set(value) {
             field = value
             this.sendDataWatcherObject(6, BYTE_SERIALIZER, this.generateBitMask())
         }
-    var noClip = false
+    open var noClip = false
         set(value) {
             field = value
             this.sendDataWatcherObject(6, BYTE_SERIALIZER, this.generateBitMask())
         }
 
-    private fun generateBitMask(): Byte {
-        return ((if (critical) 0x01 else 0) + (if (noClip) 0x02 else 0)).toByte()
-    }
+    private fun generateBitMask(): Byte = ((if (critical) 0x01 else 0) + (if (noClip) 0x02 else 0)).toByte()
 }

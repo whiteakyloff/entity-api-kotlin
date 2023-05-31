@@ -5,9 +5,9 @@ import me.whiteakyloff.entityapi.entity.FakeAgeableEntity
 import org.bukkit.*
 import org.bukkit.entity.EntityType
 
-class FakeVillager(location: Location) : FakeAgeableEntity(EntityType.VILLAGER, location)
+open class FakeVillager(location: Location) : FakeAgeableEntity(EntityType.VILLAGER, location)
 {
-    var profession: Profession?
+    open var profession: Profession?
         get() = Profession.fromId(dataWatcher.getInteger(13))
         set(value) {
             this.sendDataWatcherObject(13, INT_SERIALIZER, value?.ordinal)

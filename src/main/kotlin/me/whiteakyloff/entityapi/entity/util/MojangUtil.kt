@@ -35,38 +35,38 @@ object MojangUtil
         val playerUUID = JsonParser()
             .parse(this.readURL(UUID_URL_STRING + name)).asJsonObject
             .get("id").asString
-        val skinURL = this.readURL("$SKIN_URL_STRING$playerUUID?unsigned=false")
+        val skinURL = this.readURL("${SKIN_URL_STRING}${playerUUID}?unsigned=false")
 
         val textureProperty = JsonParser()
             .parse(skinURL).asJsonObject
-            .get("properties").asJsonArray
-            .get(0).asJsonObject
+            .get("properties").asJsonArray.get(0).asJsonObject
         val texture = textureProperty.get("value").asString
         val signature = textureProperty.get("signature").asString
 
-        Skin(System.currentTimeMillis(), name, playerUUID, texture, signature).let {
-            this.skinMap[name] = it
-            return it
+        return Skin(System.currentTimeMillis(), name, playerUUID, texture, signature).apply {
+            skinMap[name] = this
         }
     }
 
     @Throws(IOException::class)
     private fun readURL(url: String): String = (URL(url).openConnection() as HttpURLConnection)
         .apply {
-            this.requestMethod = "GET"
-            this.readTimeout = 5000
-            this.connectTimeout = 5000
-            this.doOutput = true
-            this.setRequestProperty("User-Agent", "entity-api") }
+            doOutput = true
+            requestMethod = "GET"
+            readTimeout = 5000; connectTimeout = 5000
+
+            this.setRequestProperty("User-Agent", "whiteakyloff/entity-api")
+        }
         .run {
             val output = StringBuilder()
-            val `in` = BufferedReader(InputStreamReader(this.inputStream))
+            val input = BufferedReader(InputStreamReader(this.inputStream))
 
-            while (`in`.ready()) {
-                output.append(`in`.readLine())
+            while (input.ready()) {
+                output.append(input.readLine())
             }
-            `in`.close()
-            return output.toString() }
+            input.close()
+            output.toString()
+        }
 
     private const val UUID_URL_STRING = "https://api.mojang.com/users/profiles/minecraft/"
     private const val SKIN_URL_STRING = "https://sessionserver.mojang.com/session/minecraft/profile/"

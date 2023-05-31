@@ -1,19 +1,16 @@
 package me.whiteakyloff.entityapi.entity.impl.monster
 
-import me.whiteakyloff.entityapi.entity.FakeEntity
-
 import org.bukkit.*
 import org.bukkit.entity.EntityType
 
-class FakeZombieVillager(location: Location) : FakeZombie(EntityType.ZOMBIE_VILLAGER, location)
+open class FakeZombieVillager(location: Location) : FakeZombie(EntityType.ZOMBIE_VILLAGER, location)
 {
-    var converting = false
+    open var converting = false
         set(value) {
             field = value
             this.sendDataWatcherObject(15, BOOLEAN_SERIALIZER, value)
-
         }
-    var profession: Profession?
+    open var profession: Profession?
         get() = Profession.fromId(dataWatcher.getInteger(16))
         set(value) {
             this.sendDataWatcherObject(16, INT_SERIALIZER, value?.ordinal)

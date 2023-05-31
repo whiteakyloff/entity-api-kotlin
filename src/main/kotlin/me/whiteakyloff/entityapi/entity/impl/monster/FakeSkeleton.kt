@@ -9,10 +9,9 @@ open class FakeSkeleton(entityType: EntityType, location: Location) : FakeLiving
 {
     constructor(location: Location) : this(EntityType.SKELETON, location)
 
-    var swingingArms = false
+    open var swingingArms = false
         set(value) {
             field = value
             this.sendDataWatcherObject(12, BOOLEAN_SERIALIZER, value)
-
         }
 }

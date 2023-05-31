@@ -9,9 +9,9 @@ open class FakeZombie(entityType: EntityType, location: Location) : FakeAgeableE
 {
     constructor(location: Location) : this(EntityType.ZOMBIE, location)
 
-    var handsUp = false
+    open var handsUp = false
         set(value) {
-            field = value;
+            field = value
             this.sendDataWatcherObject(14, BOOLEAN_SERIALIZER, value)
         }
 }

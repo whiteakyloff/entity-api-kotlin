@@ -1,5 +1,6 @@
 plugins {
-    id("org.jetbrains.kotlin.jvm") version "1.8.21"
+    `maven-publish`
+    kotlin("jvm") version "1.8.21"
 }
 
 version = "2.0"
@@ -13,17 +14,23 @@ repositories {
 }
 
 dependencies {
+    implementation("org.jetbrains.kotlin:kotlin-stdlib:1.5.30")
+
     compileOnly("com.comphenix.protocol:ProtocolLib:4.8.0")
-    compileOnly("org.jetbrains.kotlin:kotlin-stdlib:1.5.30")
-    compileOnly("com.destroystokyo.paper:paper-api:1.12.2-R0.1-SNAPSHOT")
+    compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
 }
 
-tasks.test {
-    useJUnitPlatform()
+kotlin {
+    jvmToolchain(8)
 }
 
-java {
-    toolchain {
-        this.languageVersion.set(JavaLanguageVersion.of(8))
+publishing {
+    publications {
+        create<MavenPublication>("maven") {
+            groupId = "com.github.whiteakylofff"
+            artifactId = "entity-api-kotlin"; version = "1.0"
+
+            this.from(components.findByName("java"))
+        }
     }
 }

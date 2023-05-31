@@ -5,15 +5,15 @@ import me.whiteakyloff.entityapi.entity.FakeAgeableEntity
 import org.bukkit.*
 import org.bukkit.entity.EntityType
 
-class FakeSheep(location: Location) : FakeAgeableEntity(EntityType.SHEEP, location)
+open class FakeSheep(location: Location) : FakeAgeableEntity(EntityType.SHEEP, location)
 {
-    var color: DyeColor? = null
+    open var color: DyeColor? = null
         set(value) {
             field = value
             this.sendDataWatcherObject(13, BYTE_SERIALIZER, this.generateBitMask())
         }
 
-    var sheared = false
+    open var sheared = false
         set(value) {
             field = value
             this.sendDataWatcherObject(13, BYTE_SERIALIZER, this.generateBitMask())
@@ -21,7 +21,5 @@ class FakeSheep(location: Location) : FakeAgeableEntity(EntityType.SHEEP, locati
         }
 
     @Suppress("DEPRECATION")
-    private fun generateBitMask(): Byte {
-        return ((if (sheared) 0x10 else 0) + (if (color != null) color!!.woolData else 0)).toByte()
-    }
+    private fun generateBitMask(): Byte = ((if (sheared) 0x10 else 0) + (if (color != null) color!!.woolData else 0)).toByte()
 }

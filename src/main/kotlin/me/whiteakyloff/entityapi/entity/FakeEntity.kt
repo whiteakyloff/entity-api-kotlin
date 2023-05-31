@@ -1,8 +1,7 @@
 package me.whiteakyloff.entityapi.entity
 
-import me.whiteakyloff.entityapi.entity.equipment.FakeEntityEquipment
 import me.whiteakyloff.entityapi.packet.ProtocolPacketFactory
-import me.whiteakyloff.entityapi.entity.listener.FakeEntityListener
+import me.whiteakyloff.entityapi.entity.equipment.FakeEntityEquipment
 
 import com.comphenix.protocol.reflect.accessors.Accessors
 import com.comphenix.protocol.reflect.accessors.FieldAccessor
@@ -18,66 +17,118 @@ import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
-import org.bukkit.plugin.java.JavaPlugin
 import org.bukkit.util.Consumer
 import org.bukkit.util.Vector
 
 import java.util.concurrent.atomic.AtomicInteger
 
-abstract class FakeEntity(entityType: EntityType, location: Location)
+abstract class FakeEntity(val entityType: EntityType, var location: Location)
 {
     val receivers: MutableList<Player>
-
     val dataWatcher: WrappedDataWatcher
-    private val entityEquipment: FakeEntityEquipment
 
-    var location: Location
+    open lateinit var entityEquipment: FakeEntityEquipment
 
-    private val entityType: EntityType
-
-    private var customName: String? = null
-
-    private var glowingColor: ChatColor? = null
-
-    var clickAction: Consumer<Player>? = null
-
-    private var silent = false
-    private var burning = false
-    private var sneaking = false
-    private var sprinting = false
-    private var invisible = false
-    private var noGravity = false
-    private var elytraFlying = false
-    private var customNameVisible = false
-
-    val entityId: Int = if (ENTITY_ID.get(null) is AtomicInteger) {
-        (ENTITY_ID.get(null) as AtomicInteger).incrementAndGet()
-    } else {
+    val entityId: Int = if (ENTITY_ID.get(null) !is AtomicInteger) {
         ENTITY_ID.get(null) as Int
+    } else {
+        (ENTITY_ID.get(null) as AtomicInteger).incrementAndGet()
     }
 
-    init {
-        this.location = location
-        this.entityType = entityType
+    var clickAction: Consumer<Player>? = null
+    open var glowingColor: ChatColor? = null
 
-        if (LISTENER == null) {
-            LISTENER = FakeEntityListener(JavaPlugin.getProvidingPlugin(this::class.java))
-        }
-        if (ENTITY_ID.get(null) !is AtomicInteger) {
-            ENTITY_ID.set(null, entityId + 1)
-        }
-        ENTITIES.add(this)
+    init {
+        this.initialize()
 
         this.receivers = ArrayList()
         this.dataWatcher = WrappedDataWatcher()
-        this.entityEquipment = FakeEntityEquipment(this)
     }
 
-    fun look(location: Location) {
+    open var sneaking: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var sprinting: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var burning: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var invisible: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var silent: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var noGravity: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var elytraFlying: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var customName: String? = null
+        set(value) {
+            if (field != null && field == value) {
+                return
+            }
+            field = value
+            val currentVersion = MinecraftProtocolVersion.getCurrentVersion()
+            val aquaticVersion = MinecraftProtocolVersion.getVersion(MinecraftVersion.AQUATIC_UPDATE)
+            if (currentVersion < aquaticVersion) {
+                this.sendDataWatcherObject(2, STRING_SERIALIZER, value)
+            } else {
+                this.sendDataWatcherObject(2, CHAT_COMPONENT_SERIALIZER, WrappedChatComponent.fromText(value))
+            }
+        }
+    open var customNameVisible: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(3, BOOLEAN_SERIALIZER, value)
+        }
+
+    open fun look(location: Location) {
         this.receivers.forEach { this.look(it, location) }
     }
 
-    fun look(yaw: Float, pitch: Float) {
+    open fun look(yaw: Float, pitch: Float) {
         this.receivers.forEach { this.look(it, yaw, pitch) }
     }
 
@@ -90,9 +141,9 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         ProtocolPacketFactory.createEntityHeadRotationPacket(this.entityId, this.location).sendPacket(player)
     }
 
-    open fun look(player: Player?, location: Location?) {
+    open fun look(player: Player?, location: Location) {
         this.location.apply {
-            this.yaw = location!!.yaw
+            this.yaw = location.yaw
             this.pitch = location.pitch
             this.direction = location.clone().subtract(location).toVector().normalize()
         }
@@ -100,7 +151,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         ProtocolPacketFactory.createEntityHeadRotationPacket(this.entityId, this.location).sendPacket(player)
     }
 
-    fun teleport(location: Location) {
+    open fun teleport(location: Location) {
         this.location = location
 
         this.receivers.forEach {
@@ -108,7 +159,7 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         }
     }
 
-    fun setVelocity(vector: Vector?) {
+    open fun setVelocity(vector: Vector?) {
         this.receivers.forEach { this.setVelocity(it, vector) }
     }
 
@@ -116,64 +167,58 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         ProtocolPacketFactory.createEntityVelocityPacket(entityId, vector!!).sendPacket(player)
     }
 
-    fun setSneaking(sneaking: Boolean) {
-        if (this.sneaking == sneaking) {
-            return
-        }
-        this.sneaking = sneaking
-        this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
-    }
-
-    fun setSprinting(sprinting: Boolean) {
-        if (this.sprinting == sprinting) {
-            return
-        }
-        this.sprinting = sprinting
-        this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
-    }
-
-    fun setBurning(burning: Boolean) {
-        if (this.burning == burning) {
-            return
-        }
-        this.burning = burning
-        this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
-    }
-
-    fun setInvisible(invisible: Boolean) {
-        if (this.invisible == invisible) {
-            return
-        }
-        this.invisible = invisible
-        this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
-    }
-
-    fun setSilent(silent: Boolean) {
-        if (this.silent == silent) {
-            return
-        }
-        this.silent = silent
-        this.sendDataWatcherObject(4, BOOLEAN_SERIALIZER, this.silent)
-    }
-
-    fun setNoGravity(noGravity: Boolean) {
-        if (this.noGravity == noGravity) {
-            return
-        }
-        this.noGravity = noGravity
-        this.sendDataWatcherObject(5, BOOLEAN_SERIALIZER, this.noGravity)
-    }
-
-    fun setElytraFlying(elytraFlying: Boolean) {
-        if (this.elytraFlying == elytraFlying) {
-            return
-        }
-        this.elytraFlying = elytraFlying
-        this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
-    }
-
-    fun getGlowingColor() : ChatColor? {
+    open fun getGlowingColor() : ChatColor? {
         return this.glowingColor
+    }
+
+    open fun addReceiver(player: Player?) {
+        this.receivers.add(player!!)
+
+        this.sendSpawnPacket(player)
+        this.entityEquipment.updateEquipmentPacket(player)
+    }
+
+    open fun hasReceiver(player: Player?): Boolean {
+        return this.receivers.contains(player)
+    }
+
+    open fun removeReceiver(player: Player?) {
+        this.receivers.remove(player)
+
+        this.sendDestroyPacket(player)
+    }
+
+    open fun setPassengers(entityIds: IntArray) {
+        this.receivers.forEach { this.setPassengers(it, entityIds) }
+    }
+
+    open fun setPassengers(vararg fakeEntities: FakeEntity?) {
+        this.setPassengers(fakeEntities.map { it!!.entityId }.toIntArray())
+    }
+
+    open fun setPassengers(player: Player?, entityIds: IntArray) {
+        ProtocolPacketFactory.createMountPacket(this.entityId, entityIds).sendPacket(player)
+    }
+
+    open fun sendDataWatcherPacket() {
+        this.receivers.forEach { ProtocolPacketFactory.createEntityMetadataPacket(entityId, dataWatcher).sendPacket(it) }
+    }
+
+    open fun sendDataWatcherObject(dataWatcherIndex: Int, serializer: WrappedDataWatcher.Serializer?, value: Any?) {
+        WrappedDataWatcherObject(dataWatcherIndex, serializer).apply {
+            dataWatcher.setObject(this, value)
+        }.also { this.sendDataWatcherPacket() }
+    }
+
+    protected open fun getSpawnTypeId(): Int = 0
+
+    protected open fun initialize() {
+        if (ENTITY_ID.get(null) !is AtomicInteger) {
+            ENTITY_ID.set(null, entityId + 1)
+        }
+        ENTITIES.add(this)
+
+        this.entityEquipment = FakeEntityEquipment(this)
     }
 
     protected open fun setGlowingColor(chatColor: ChatColor) {
@@ -184,77 +229,16 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
     }
 
-    fun setCustomNameVisible(customNameVisible: Boolean) {
-        if (this.customNameVisible == customNameVisible) {
-            return
-        }
-        this.customNameVisible = customNameVisible
-        this.sendDataWatcherObject(3, BOOLEAN_SERIALIZER, this.customNameVisible)
-    }
-
-    fun setCustomName(customName: String) {
-        if (this.customName != null && this.customName == customName) {
-            return
-        }
-        this.customName = customName
-        val currentVersion = MinecraftProtocolVersion.getCurrentVersion()
-        val aquaticVersion = MinecraftProtocolVersion.getVersion(MinecraftVersion.AQUATIC_UPDATE)
-        if (currentVersion < aquaticVersion) {
-            this.sendDataWatcherObject(2, STRING_SERIALIZER, this.customName)
-        } else {
-            this.sendDataWatcherObject(2, CHAT_COMPONENT_SERIALIZER, WrappedChatComponent.fromText(this.customName))
-        }
-    }
-
-    fun addReceiver(player: Player?) {
-        this.receivers.add(player!!)
-
-        this.sendSpawnPacket(player)
-        this.entityEquipment.updateEquipmentPacket(player)
-    }
-
-    fun hasReceiver(player: Player?): Boolean {
-        return this.receivers.contains(player)
-    }
-
-    fun removeReceiver(player: Player?) {
-        this.receivers.remove(player)
-
-        this.sendDestroyPacket(player)
-    }
-
-    open fun setPassengers(entityIds: IntArray) {
-        this.receivers.forEach { this.setPassengers(it, entityIds) }
-    }
-
-    fun setPassengers(vararg fakeEntities: FakeEntity?) {
-        this.setPassengers(fakeEntities.map { it!!.entityId }.toIntArray())
-    }
-
-    open fun setPassengers(player: Player?, entityIds: IntArray) {
-        ProtocolPacketFactory.createMountPacket(this.entityId, entityIds).sendPacket(player)
-    }
-
-    fun sendDataWatcherPacket() {
-        this.receivers.forEach { ProtocolPacketFactory.createEntityMetadataPacket(entityId, dataWatcher).sendPacket(it) }
-    }
-
-    fun sendDataWatcherObject(dataWatcherIndex: Int, serializer: WrappedDataWatcher.Serializer?, value: Any?) {
-        WrappedDataWatcherObject(dataWatcherIndex, serializer).apply {
-            dataWatcher.setObject(this, value)
-        }.also { this.sendDataWatcherPacket() }
-    }
-
     protected open fun sendDestroyPacket(player: Player?) {
         ProtocolPacketFactory.createDestroyEntityPacket(entityId).sendPacket(player)
     }
 
     protected open fun sendSpawnPacket(player: Player?) {
         if (!this.entityType.isAlive) {
-            ProtocolPacketFactory.createSpawnEntityPacket(this.entityId, this.getSpawnTypeId(), this.location, this.entityType).sendPacket(player)
+            ProtocolPacketFactory.createSpawnEntityPacket(entityId, this.getSpawnTypeId(), this.location, this.entityType).sendPacket(player)
         }
         else {
-            ProtocolPacketFactory.createSpawnLivingEntityPacket(this.entityId, this.location, this.entityType, this.dataWatcher).sendPacket(player)
+            ProtocolPacketFactory.createSpawnLivingEntityPacket(entityId, location, entityType, dataWatcher).sendPacket(player)
         }
         this.sendDataWatcherPacket()
     }
@@ -280,7 +264,6 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
             return ENTITIES.firstOrNull { it.entityId == id }
         }
 
-        var LISTENER: FakeEntityListener? = null
         val BYTE_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(java.lang.Byte::class.java)
         val STRING_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(java.lang.String::class.java)
         val INT_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(java.lang.Integer::class.java)
@@ -290,6 +273,4 @@ abstract class FakeEntity(entityType: EntityType, location: Location)
         val ROTATION_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(Vector3F.getMinecraftClass())
         val ITEMSTACK_SERIALIZER: WrappedDataWatcher.Serializer = WrappedDataWatcher.Registry.get(MinecraftReflection.getItemStackClass())
     }
-
-    protected open fun getSpawnTypeId(): Int = 0
 }

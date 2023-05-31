@@ -7,24 +7,24 @@ import me.whiteakyloff.entityapi.entity.FakeEntity
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
 
-class FakeArmorStand(location: Location) : FakeEntity(EntityType.ARMOR_STAND, location)
+open class FakeArmorStand(location: Location) : FakeEntity(EntityType.ARMOR_STAND, location)
 {
-    var marker = false
+    open var marker = false
         set(value) {
             field = value
             this.sendDataWatcherObject(11, BYTE_SERIALIZER, this.generateBitMask())
         }
-    var small = false
+    open var small = false
         set(value) {
             field = value
             this.sendDataWatcherObject(11, BYTE_SERIALIZER, this.generateBitMask())
         }
-    var basePlate = false
+    open var basePlate = false
         set(value) {
             field = value
             this.sendDataWatcherObject(11, BYTE_SERIALIZER, this.generateBitMask())
         }
-    var arms = false
+    open var arms = false
         set(value) {
             field = value
             this.sendDataWatcherObject(11, BYTE_SERIALIZER, this.generateBitMask())
