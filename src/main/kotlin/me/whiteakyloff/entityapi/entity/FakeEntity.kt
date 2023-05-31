@@ -36,7 +36,6 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
     }
 
     var clickAction: Consumer<Player>? = null
-    open var glowingColor: ChatColor? = null
 
     init {
         this.initialize()
@@ -54,6 +53,14 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
             this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
         }
     open var sprinting: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
+        }
+    open var glowing: Boolean = false
         set(value) {
             if (field == value) {
                 return
@@ -167,10 +174,6 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
         ProtocolPacketFactory.createEntityVelocityPacket(entityId, vector!!).sendPacket(player)
     }
 
-    open fun getGlowingColor() : ChatColor? {
-        return this.glowingColor
-    }
-
     open fun addReceiver(player: Player?) {
         this.receivers.add(player!!)
 
@@ -221,14 +224,6 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
         this.entityEquipment = FakeEntityEquipment(this)
     }
 
-    protected open fun setGlowingColor(chatColor: ChatColor) {
-        if (this.glowingColor == chatColor) {
-            return
-        }
-        this.glowingColor = chatColor
-        this.sendDataWatcherObject(0, BYTE_SERIALIZER, this.generateBitMask())
-    }
-
     protected open fun sendDestroyPacket(player: Player?) {
         ProtocolPacketFactory.createDestroyEntityPacket(entityId).sendPacket(player)
     }
@@ -249,7 +244,7 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
         bitMask = bitMask.plus(if (sneaking) 0x02 else 0x00).toByte()
         bitMask = bitMask.plus(if (sprinting) 0x08 else 0x00).toByte()
         bitMask = bitMask.plus(if (invisible) 0x20 else 0x00).toByte()
-        bitMask = bitMask.plus(if (glowingColor != null) 0x40 else 0x00).toByte()
+        bitMask = bitMask.plus(if (glowing) 0x40 else 0x00).toByte()
         bitMask = bitMask.plus(if (elytraFlying) 0x80 else 0x00).toByte()
         return bitMask
     }

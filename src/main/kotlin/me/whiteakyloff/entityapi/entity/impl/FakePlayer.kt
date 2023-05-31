@@ -28,6 +28,7 @@ open class FakePlayer : FakeLivingEntity
 {
     private val uuid: UUID
     private val name: String
+    private val glowingColor: ChatColor?
 
     private var mojangSkin: MojangUtil.Skin? = null
     private lateinit var wrappedGameProfile: WrappedGameProfile
@@ -39,6 +40,7 @@ open class FakePlayer : FakeLivingEntity
 
         this.uuid = UUID.randomUUID()
         this.name = String.format("§8NPC [%s]", Random.nextInt(0, Int.MAX_VALUE))
+        this.glowingColor = null
 
         this.updateSkinPart(PlayerSkinPart.TOTAL.bitMask)
     }
@@ -56,8 +58,8 @@ open class FakePlayer : FakeLivingEntity
         }, 30L)
     }
 
-    override fun setGlowingColor(chatColor: ChatColor) {
-        super.setGlowingColor(chatColor)
+    open fun setGlowingColor(chatColor: ChatColor?) {
+        this.glowing = chatColor != null
 
         this.receivers.forEach { this.sendTeamPacket(this.getTeamName(), it, WrapperPlayServerScoreboardTeam.Mode.TEAM_UPDATED) }
     }
@@ -126,11 +128,11 @@ open class FakePlayer : FakeLivingEntity
             if (mode == WrapperPlayServerScoreboardTeam.Mode.TEAM_CREATED || mode == WrapperPlayServerScoreboardTeam.Mode.TEAM_UPDATED) {
                 scoreboardTeam.handle.integers.write(1, 0)
                 scoreboardTeam.handle.chatComponents.write(0, WrappedChatComponent.fromText(ChatColor.stripColor(teamName)))
-                scoreboardTeam.handle.chatComponents.write(1, WrappedChatComponent.fromText(this.getGlowingColor()?.toString() ?: "§8"))
+                scoreboardTeam.handle.chatComponents.write(1, WrappedChatComponent.fromText(this.glowingColor?.toString() ?: "§8"))
                 scoreboardTeam.handle.getEnumModifier(
                     ChatColor::class.java,
                     MinecraftReflection.getMinecraftClass("EnumChatFormat")
-                ).write(0, if (this.getGlowingColor() == null) ChatColor.RESET else this.getGlowingColor())
+                ).write(0, this.glowingColor ?: ChatColor.RESET)
             } else {
                 scoreboardTeam.players = ImmutableList.of(this.name)
             }
@@ -142,8 +144,8 @@ open class FakePlayer : FakeLivingEntity
             if (mode == WrapperPlayServerScoreboardTeam.Mode.TEAM_CREATED || mode == WrapperPlayServerScoreboardTeam.Mode.TEAM_UPDATED) {
                 scoreboardTeam.packOptionData = 0
                 scoreboardTeam.displayName = teamName
-                scoreboardTeam.color = this.getGlowingColor()?.ordinal ?: 0
-                scoreboardTeam.prefix = this.getGlowingColor()?.toString() ?: "§8"
+                scoreboardTeam.color = this.glowingColor?.ordinal ?: 0
+                scoreboardTeam.prefix = this.glowingColor?.toString() ?: "§8"
             } else {
                 scoreboardTeam.players = ImmutableList.of(this.name)
             }
