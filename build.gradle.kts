@@ -1,9 +1,11 @@
 plugins {
     `maven-publish`
     kotlin("jvm") version "1.8.21"
+
+    id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
-version = "2.0"
+version = "2.0.2"
 group = "me.whiteakyloff"
 
 repositories {
@@ -20,15 +22,25 @@ dependencies {
     compileOnly("com.destroystokyo.paper:paper-api:1.16.5-R0.1-SNAPSHOT")
 }
 
-kotlin {
-    jvmToolchain(8)
+tasks {
+    jar {
+        this.dependsOn(shadowJar)
+    }
+
+    compileKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
+
+    compileTestKotlin {
+        kotlinOptions.jvmTarget = "1.8"
+    }
 }
 
 publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "com.github.whiteakylofff"
-            artifactId = "entity-api-kotlin"; version = "2.0"
+            artifactId = "entity-api-kotlin"; version = "2.0.2"
 
             this.from(components.findByName("java"))
         }
