@@ -28,7 +28,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "com.github.whiteakylofff"
-            artifactId = "entity-api-kotlin"; version = "1.0"
+            artifactId = "entity-api-kotlin"; version = "2.0"
 
             this.from(components.findByName("java"))
         }
