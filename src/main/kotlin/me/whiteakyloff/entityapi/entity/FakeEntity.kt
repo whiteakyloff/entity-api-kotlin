@@ -13,11 +13,9 @@ import com.comphenix.protocol.wrappers.WrappedChatComponent
 import com.comphenix.protocol.wrappers.WrappedDataWatcher
 import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject
 
-import org.bukkit.ChatColor
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
 import org.bukkit.entity.Player
-import org.bukkit.util.Consumer
 import org.bukkit.util.Vector
 
 import java.util.concurrent.atomic.AtomicInteger
@@ -35,8 +33,6 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
         (ENTITY_ID.get(null) as AtomicInteger).incrementAndGet()
     }
 
-    var clickAction: Consumer<Player>? = null
-
     init {
         this.initialize()
 
@@ -44,6 +40,14 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
         this.dataWatcher = WrappedDataWatcher()
     }
 
+    open var public: Boolean = false
+        set(value) {
+            if (field == value) {
+                return
+            }
+            field = value
+            if (!value) { this.receivers.forEach { this.removeReceiver(it) } }
+        }
     open var sneaking: Boolean = false
         set(value) {
             if (field == value) {
@@ -250,7 +254,7 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
     }
 
     companion object {
-        private val ENTITIES: MutableList<FakeEntity> = ArrayList()
+        val ENTITIES: MutableList<FakeEntity> = ArrayList()
         private val ENTITY_ID: FieldAccessor = Accessors.getFieldAccessor(
             MinecraftReflection.getEntityClass(), "entityCount", true
         )

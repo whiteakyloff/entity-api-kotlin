@@ -5,7 +5,7 @@ plugins {
     id("com.github.johnrengelman.shadow") version "7.0.0"
 }
 
-version = "2.0.2"
+version = "2.0.3"
 group = "me.whiteakyloff"
 
 repositories {
@@ -40,7 +40,7 @@ publishing {
     publications {
         create<MavenPublication>("maven") {
             groupId = "com.github.whiteakylofff"
-            artifactId = "entity-api-kotlin"; version = "2.0.2"
+            artifactId = "entity-api-kotlin"; version = "2.0.3"
 
             this.from(components.findByName("java"))
         }
