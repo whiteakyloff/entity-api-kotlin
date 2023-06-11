@@ -12,6 +12,7 @@ import com.comphenix.protocol.wrappers.Vector3F
 import com.comphenix.protocol.wrappers.WrappedChatComponent
 import com.comphenix.protocol.wrappers.WrappedDataWatcher
 import com.comphenix.protocol.wrappers.WrappedDataWatcher.WrappedDataWatcherObject
+import org.bukkit.Bukkit
 
 import org.bukkit.Location
 import org.bukkit.entity.EntityType
@@ -46,7 +47,11 @@ abstract class FakeEntity(val entityType: EntityType, var location: Location)
                 return
             }
             field = value
-            if (!value) { this.receivers.forEach { this.removeReceiver(it) } }
+            if (!field) {
+                this.receivers.forEach { this.removeReceiver(it) }
+            } else {
+                Bukkit.getOnlinePlayers().forEach { this.addReceiver(it) }
+            }
         }
     open var sneaking: Boolean = false
         set(value) {
